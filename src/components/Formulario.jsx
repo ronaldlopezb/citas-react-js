@@ -1,55 +1,76 @@
-import { useState } from "react";
-import Error from './Error'
+import { useState, useEffect } from "react";
+import Error from "./Error";
 
-const Formulario = ( { pacientes, setPacientes }) => {
+const Formulario = ({ pacientes, setPacientes, paciente, setPaciente }) => {
   const [nombre, setNombre] = useState("");
   const [propietario, setPropietario] = useState("");
   const [email, setEmail] = useState("");
   const [fecha, setFecha] = useState("");
   const [sintomas, setSintomas] = useState("");
 
-
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    if (Object.keys(paciente).length > 0) {
+      setNombre(paciente.nombre);
+      setPropietario(paciente.propietario);
+      setEmail(paciente.email);
+      setFecha(paciente.fecha);
+      setSintomas(paciente.sintomas);
+    }
+  }, [paciente]);
+
   const generarId = () => {
-    const random = Math.random().toString(36).substr(2)
-    const fecha = Date.now().toString(36)
-    
-    return random + fecha
-  }
+    const random = Math.random().toString(36).substr(2);
+    const fecha = Date.now().toString(36);
+    return random + fecha;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     //Validar Formulario
-    if ( [nombre, propietario, email, fecha, sintomas].includes('') ) {
-      setError(true)
+    if ([nombre, propietario, email, fecha, sintomas].includes("")) {
+      setError(true);
       return;
     }
 
-    setError(false)
+    setError(false);
 
     //Creamos un objeto para el nuevo paciente
-    const nuevoPaciente = {
-      nombre, 
-      propietario, 
-      email, 
-      fecha, 
+    const objetoPaciente = {
+      nombre,
+      propietario,
+      email,
+      fecha,
       sintomas,
-      id: generarId()
+    };
+
+    //Editar o Nuevo
+    if (paciente.id) {
+      //Editando el Registro
+      objetoPaciente.id = paciente.id;
+      //console.log(objetoPaciente);
+
+      const pacientesActualizados = pacientes.map((pacienteState) =>
+        pacienteState.id === paciente.id ? objetoPaciente : pacienteState
+      );
+
+      setPacientes(pacientesActualizados);
+      setPaciente({})
+    } else {
+      //Creando Nuevo Registro
+      objetoPaciente.id = generarId();
+      setPacientes([...pacientes, objetoPaciente]);
     }
 
-    //agregar el Nuevo Paciente a la lista de Pacientes
-    setPacientes ( [...pacientes,nuevoPaciente] )
-
     //Reiniciar el Formulario
-    setNombre('')
-    setPropietario('')
-    setEmail('')
-    setFecha('')
-    setSintomas('')
-
-  }
+    setNombre("");
+    setPropietario("");
+    setEmail("");
+    setFecha("");
+    setSintomas("");
+  };
 
   return (
     <div className="md:w-1/2 lg:w-2/5">
@@ -62,15 +83,15 @@ const Formulario = ( { pacientes, setPacientes }) => {
         <span className="text-indigo-600 font-bold">adminístralos</span>
       </p>
 
-      <form 
+      <form
         className="bg-white shadow-md rounded-xl py-10 px-5 mb-10 m-3"
-        onSubmit={ handleSubmit }
+        onSubmit={handleSubmit}
       >
-        { error && <Error>
-                    <h1>Hola Mundo</h1>
-                    <p>Todos los campos son obligatorios</p>
-                  </Error>
-        }
+        {error && (
+          <Error>
+            <p>Todos los campos son obligatorios</p>
+          </Error>
+        )}
 
         <div className="mb-5">
           <label
@@ -138,8 +159,8 @@ const Formulario = ( { pacientes, setPacientes }) => {
             id="alta"
             type="date"
             className="border-2 w-full p-2 mt-2 placeholder-gray-400 rounded-md"
-            value = { fecha }
-            onChange={ (e) => setFecha(e.target.value)}
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
           />
         </div>
 
@@ -155,15 +176,15 @@ const Formulario = ( { pacientes, setPacientes }) => {
             id="sintomas"
             placeholder="Ingrese los Síntomas"
             className="border-2 w-full p-2 mt-2 placeholder-gray-400 rounded-md"
-            value = {sintomas}
-            onChange={ (e) => setSintomas(e.target.value)}
+            value={sintomas}
+            onChange={(e) => setSintomas(e.target.value)}
           />
         </div>
 
         <input
           type="submit"
           className="bg-indigo-600 w-full p-3 text-white uppercase font-bold hover:bg-indigo-700"
-          value="Agregar Paciente"
+          value={paciente.id ? "Editar Paciente" : "Agregar Paciente"}
         />
       </form>
     </div>
